@@ -9,15 +9,17 @@ contract ERC721 {
         address indexed from, 
         address indexed to, 
         uint256 indexed  tokenId);
+
+        event Approval(
+            address indexed owner,
+            address indexed approved,
+            uint256 indexed tokenId
+        );
      
     mapping(uint256 => address ) private _tokenOwner;
     mapping(address => uint256) private _OwnedTokensCount;
-    mapping(uint256 => address)  private _tokenAprovals;
-
-    // @notice
-    // @dev
-    // @param _owner
-    // @return
+    mapping(uint256 => address)  private _tokenApprovals;
+    
 
     function balanceOf(address _owner) public view returns(uint256) {
       require(_owner != address(0), 'token non exsits');
@@ -54,8 +56,25 @@ contract ERC721 {
         }
 
         function transferFrom(address _from, address _to, uint256 _tokenId)public {
+           require(isApprovedOrOwner(msg.sender, _tokenId));
            _transferFrom(_from, _to, _tokenId);
         }
 
+        function approve(address _to, uint tokenId) public {
+            address owner = ownerOf(tokenId);
+            require(_to != owner, 'Error - approval to current owner');
+            require(msg.sender == owner, 'current caller is nt token owner');
+            _tokenApprovals[tokenId] = _to;
+            emit Approval(owner, _to, tokenId);
+
+        }
+     
+       function isApprovedOrOwner(address spender, uint256 tokenId) internal view returns(bool) {
+          require(_exists(tokenId), 'token does not exist');
+          address owner = ownerOf(tokenId);
+          return(spender == owner);
+        
+       }
+        
    }
   
