@@ -1,14 +1,16 @@
 //SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.0;
 
 import './ERC165.sol';
 import './interfaces/IERC721.sol';
+import  './libraries/Counters.sol';
 
 contract ERC721 is ERC165, IERC721{
+  using SafeMath for uint256;
+  using Counters for Counters.Counter;
 
     mapping(uint256 => address ) private _tokenOwner;
-    mapping(address => uint256) private _OwnedTokensCount;
+    mapping(address => Counters.Counter) private _OwnedTokensCount;
     mapping(uint256 => address)  private _tokenApprovals;
     
     constructor() {
@@ -19,7 +21,7 @@ contract ERC721 is ERC165, IERC721{
 
     function balanceOf(address _owner) public view override returns(uint256) {
       require(_owner != address(0), 'token non exsits');
-      return _OwnedTokensCount[_owner];
+      return _OwnedTokensCount[_owner].current();
     }
 
     function ownerOf(uint256 _tokenId) public view override returns (address) {
@@ -31,22 +33,22 @@ contract ERC721 is ERC165, IERC721{
       address owner = _tokenOwner[tokenId];
       return owner != address(0);
     }
-  
+  // not safe function..
     function _mint( address to, uint256 tokenId) internal virtual{
       require(to != address(0), "ERC721 : minting to zero address");
       require(!_exists(tokenId), "ERC721 token already exists");
         _tokenOwner[tokenId] = to;
-        _OwnedTokensCount[to] += 1;
+        _OwnedTokensCount[to].increment();
 
           emit Transfer(address(0), to, tokenId);
        }
     
-
+//not safe
     function _transferFrom(address _from, address _to, uint256 _tokenId) internal {
       require (_to != address(0), 'ERC721 Transfer to zero address');
       require(ownerOf(_tokenId) == _from, "does not own address ");
-        _OwnedTokensCount[_from] -= 1;
-        _OwnedTokensCount[_to] += 1;
+        _OwnedTokensCount[_from].decrement;
+        _OwnedTokensCount[_to].increment;
         _tokenOwner[_tokenId] = _to;
           emit Transfer(_from, _to, _tokenId);
         }
